@@ -40,11 +40,15 @@ function log() {
 
 # 投稿
 function post() {
-  # TODO: implement
+  # 一行にする
   for line in "$@"
     do
-      echo "[post] $line"
+      text="${text}\n$line"
     done
+
+  # slack への投稿
+  ## SLACK_WEBHOOK_URL は環境変数にて設定されていること
+  curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$text\"}" "$SLACK_WEBHOOK_URL"
 }
 
 # 通知
@@ -104,7 +108,7 @@ for url in "${URLS[@]}"
 
       if [ $? != 0 ]; then
         #### 投稿失敗 -> 通知
-        messages=("IPアドレスの監視を開始しました" "現在のIP=$current_ip" "投稿に失敗しました")
+        messages=("IPアドレスの監視を開始しました" "現在のIP=$current_ip" "[Failed] 投稿に失敗しました")
         notify "${messages[@]}"
       fi
 
@@ -117,12 +121,12 @@ for url in "${URLS[@]}"
 
     if [ "$error_times" -ge "$ERROR_THRESHOLD" ]; then
       ### エラー上限 -> 投稿
-      messages=("IPアドレスの取得に${error_times}回続けて失敗しました")
+      messages=("[Failed] IPアドレスの取得に${error_times}回続けて失敗しました")
       post "${messages[@]}"
 
       if [ $? != 0 ]; then
         #### 投稿失敗 -> 通知
-        messages=("IPアドレスの取得に${error_times}回続けて失敗しました" "投稿に失敗しました")
+        messages=("[Failed] IPアドレスの取得に${error_times}回続けて失敗しました" "[Failed] 投稿に失敗しました")
         notify "${messages[@]}"
       fi
       ### 保存
@@ -138,7 +142,7 @@ for url in "${URLS[@]}"
 
     if [ $? != 0 ]; then
       ### 投稿失敗 -> 通知
-      messages=("IPアドレスが変更されています" "現在のIP=$current_ip <- 前回のIP=$LAST_IP" "投稿に失敗しました")
+      messages=("IPアドレスが変更されています" "現在のIP=$current_ip <- 前回のIP=$LAST_IP" "[Failed] 投稿に失敗しました")
       notify post "${messages[@]}"
     fi
     ## 保存
