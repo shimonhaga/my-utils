@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 作業ディレクトリ
-WORKING_DIR="/tmp/ip_checker"
+WORKING_DIR="tmp/ip_checker"
 
 # ファイル保存先
 SAVE_FILE_NAME="ip.txt"
@@ -61,9 +61,10 @@ function notify() {
 }
 
 # 初期化
+cd `dirname $0`
 if [ ! -e "$WORKING_DIR" ]; then
   # 作業ディレクトリ作成
-  mkdir "$WORKING_DIR"
+  mkdir -p "$WORKING_DIR"
 fi
 if [ ! -e "$WORKING_DIR/$SAVE_FILE_NAME" ]; then
   # 初期 ip 書き込み
